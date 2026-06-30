@@ -14,6 +14,13 @@ spec:
     spec:
       containers:
       - name: api
-        image: nginx:alpine
+        image: europe-central2-docker.pkg.dev/prj-cloud-sandbox-repo/bouldering-repo/bouldering-api:v1.0.0
         ports:
         - containerPort: 80
+        resources:
+          requests:
+            cpu: "100m"    
+            memory: "128Mi" 
+          limits:
+            cpu: "250m"     
+            memory: "256Mi"
