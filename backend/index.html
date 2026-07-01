@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bouldering Tracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .tracker-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+    <div class="container mt-5 tracker-container">
+        <h2 class="text-center mb-4">🧗‍♂️ My bouldering tracker</h2>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <form id="addClimbForm">
+                    <div class="mb-3">
+                        <label for="routeName" class="form-label">Route name</label>
+                        <input type="text" class="form-control" id="routeName" required>
+                    </div>
+                    <div class="row">
+                        <div class="col mb-3">
+                            <label for="grade" class="form-label">Grade</label>
+                            <select class="form-select" id="grade">
+                                <option>5A</option>
+                                <option>5A+</option>
+                                <option>5B</option>
+                                <option>5B+</option>
+                                <option>5C</option>
+                                <option>5C+</option>
+                                <option>6A</option>
+                                <option>6A+</option>
+                                <option>6B</option>
+                                <option>6B+</option>
+                                <option>6C</option>
+                                <option>6C+</option>
+                                <option>7A</option>
+                                <option>7A+</option>
+                            </select>
+                        </div>
+                        <div class="col mb-3">
+                            <label for="style" class="form-label">Style</label>
+                            <select class="form-select" id="style">
+                                <option>Flash</option>
+                                <option>RP</option>
+                                <option>OS</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="location" class="form-label">Location (Jura, etc)</label>
+                        <input type="text" class="form-control" id="location" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Save climb</button>
+                </form>
+            </div>
+        </div>
+
+        <h4 class="mb-3">Last send</h4>
+        <div id="climbsList" class="list-group shadow-sm">
+        </div>
+    </div>
+
+    <script>
+        async function fetchClimbs() {
+            try {
+                const response = await fetch('/api/climbs');
+                if (!response.ok) throw new Error('Server error');
+
+                const climbs = await response.json();
+                const list = document.getElementById('climbsList');
+                list.innerHTML = ''; 
+
+                
+                climbs.reverse().forEach(climb => {
+                    list.innerHTML += `
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1 fw-bold">${climb.route_name}</h6>
+                                <span class="badge bg-success">${climb.grade}</span>
+                            </div>
+                            <small class="text-muted">${climb.location} • Styl: ${climb.style}</small>
+                        </div>
+                    `;
+                });
+            } catch (error) {
+                console.error('Error while fetching routes:', error);
+            }
+        }
+
+        document.getElementById('addClimbForm').addEventListener('submit', async (e) => {
+            e.preventDefault(); 
+
+            const newClimb = {
+                route_name: document.getElementById('routeName').value,
+                grade: document.getElementById('grade').value,
+                style: document.getElementById('style').value,
+                location: document.getElementById('location').value
+            };
+
+            try {
+                const response = await fetch('/api/climbs', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newClimb)
+                });
+
+                if (response.ok) {
+                    document.getElementById('addClimbForm').reset();
+                    fetchClimbs(); 
+                } else {
+                    alert('There was an error during saving to DB');
+                }
+            } catch (error) {
+                console.error('Saving error:', error);
+                alert('No connection with API');
+            }
+        });
+
+        // Fechting completed passes from Db
+        fetchClimbs();
+    </script>
+</body>
+
+</html>

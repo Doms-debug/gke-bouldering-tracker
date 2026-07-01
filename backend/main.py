@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.orm import sessionmaker, Session, declarative_base
@@ -57,3 +58,8 @@ def add_climb(climb: ClimbCreate, db: Session = Depends(get_db)):
 @app.get("/health")
 def health_check():
     return {"status": "ok", "database": "connected"}
+
+@app.get("/")
+def serve_frontend():
+    """Serving main graphic interface"""
+    return FileResponse("index.html")
