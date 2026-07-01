@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: api
-        image: europe-central2-docker.pkg.dev/prj-cloud-sandbox-repo/bouldering-repo/bouldering-api:v1.0.0
+        image: europe-central2-docker.pkg.dev/prj-cloud-sandbox-repo/bouldering-repo/bouldering-api:v1.1.0
         ports:
         - containerPort: 80
         resources:

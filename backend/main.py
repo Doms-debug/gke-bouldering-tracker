@@ -1,33 +1,59 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from pydantic import BaseModel
+from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy.orm import sessionmaker, Session, declarative_base
 from typing import List
 
-app = FastAPI(title="Bouldering Tracker API")
+DATABASE_URL = "postgresql://bouldering_user:supersecretpassword@postgres-service:5432/bouldering_db"
 
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
 
-class Climb(BaseModel):
+class ClimbDB(Base):
+    __tablename__ = "climbs"
+    id = Column(Integer, primary_key=True, index=True)
+    route_name = Column(String, index=True)
+    grade = Column(String)
+    style = Column(String)
+    location = Column(String)
+
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(title="Bouldering Tracker API with db PostgreSQL")
+
+class ClimbCreate(BaseModel):
     route_name: str
     grade: str
-    style: str  # OS, Flash, RP
+    style: str
     location: str
 
-climbs_db = [
-    {"route_name": "Biała Rysa", "grade": "6A", "style": "OS", "location": "Jura"},
-    {"route_name": "Panelowy Klasyk", "grade": "6B", "style": "Flash", "location": "Murall Warszawa"}
-]
+class ClimbResponse(ClimbCreate):
+    id: int
+    class Config:
+        from_attributes = True
 
-@app.get("/api/climbs", response_model=List[Climb])
-def get_climbs():
-    """Return list of all completed climbs"""
-    return climbs_db
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
-@app.post("/api/climbs")
-def add_climb(climb: Climb):
-    """Add to base"""
-    climbs_db.append(climb.model_dump())
-    return {"message": "Route succesfully saved!", "climb": climb}
+@app.get("/api/climbs", response_model=List[ClimbResponse])
+def get_climbs(db: Session = Depends(get_db)):
+    """Returns all completed climbs from PostgreSQL"""
+    return db.query(ClimbDB).all()
+
+@app.post("/api/climbs", response_model=ClimbResponse)
+def add_climb(climb: ClimbCreate, db: Session = Depends(get_db)):
+    """Permanent save for new climb"""
+    new_climb = ClimbDB(**climb.model_dump())
+    db.add(new_climb)
+    db.commit()
+    db.refresh(new_climb)
+    return new_climb
 
 @app.get("/health")
 def health_check():
-    """Kuberenetes endpoint liveness"""
-    return {"status": "ok"}
+    return {"status": "ok", "database": "connected"}
