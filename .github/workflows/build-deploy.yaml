@@ -1,0 +1,54 @@
+name: Build and Deploy API
+
+on:
+  push:
+    paths:
+      - 'backend/**'
+    branches:
+      - main
+
+env:
+  REGISTRY: europe-central2-docker.pkg.dev
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REPO_NAME: bouldering-repo
+  IMAGE_NAME: bouldering-api
+
+jobs:
+  build-and-update-manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: Configure Docker Auth
+        run: gcloud auth configure-docker ${{ env.REGISTRY }} --quiet
+
+      - name: Build and Push Docker Image
+        run: |
+          TAG=$(echo $GITHUB_SHA | cut -c1-7)
+          IMAGE_PATH=${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}
+          
+          cd backend
+          docker build -t $IMAGE_PATH:$TAG .
+          docker push $IMAGE_PATH:$TAG
+
+      - name: Update Kubernetes Manifest
+        run: |
+          TAG=$(echo $GITHUB_SHA | cut -c1-7)
+          IMAGE_PATH=${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}
+          
+          sed -i "s|^\(\s*image:\s*\).*|\1$IMAGE_PATH:$TAG|" kubernetes/bouldering-tracker/deployment.yaml
+
+      - name: Commit and Push Manifest Change
+        run: |
+          git config --global user.name "GitHub Actions CI"
+          git config --global user.email "actions@github.com"
+          git add kubernetes/bouldering-tracker/deployment.yaml
+          # [skip ci]
+          git commit -m "chore: auto-update image tag to ${GITHUB_SHA::7} [skip ci]" || echo "No changes to commit"
+          git push
