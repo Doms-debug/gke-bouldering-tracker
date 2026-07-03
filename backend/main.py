@@ -18,6 +18,7 @@ class ClimbDB(Base):
     grade = Column(String)
     style = Column(String)
     location = Column(String)
+    climb_type = Column(String, default="Boulder") # new field
 
 Base.metadata.create_all(bind=engine)
 
@@ -28,6 +29,7 @@ class ClimbCreate(BaseModel):
     grade: str
     style: str
     location: str
+    climb_type: str = "Boulder"
 
 class ClimbResponse(ClimbCreate):
     id: int
@@ -54,6 +56,16 @@ def add_climb(climb: ClimbCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_climb)
     return new_climb
+
+# New endpoint: delete entry
+@app.delete("/api/climbs/{climb_id}")
+def delete_climb(climb_id: int, db: Session = Depends(get_db)):
+    climb = db.query(ClimbDB).filter(ClimbDB.id == climb_id).first()
+    if climb:
+        db.delete(climb)
+        db.commit()
+        return {"status": "ok"}
+    return {"status": "not found"}
 
 @app.get("/health")
 def health_check():

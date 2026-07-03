@@ -11,24 +11,39 @@
             max-width: 600px;
             margin: 0 auto;
         }
+
+        .climb-type-badge {
+            font-size: 0.75rem;
+            vertical-align: middle;
+        }
     </style>
 </head>
 
 <body class="bg-light">
     <div class="container mt-5 tracker-container">
-        <h2 class="text-center mb-4">🧗‍♂️ My bouldering tracker</h2>
+        <h2 class="text-center mb-4">🧗‍♂️ My Climbing Tracker</h2>
 
         <div class="card shadow-sm mb-4">
             <div class="card-body">
                 <form id="addClimbForm">
                     <div class="mb-3">
-                        <label for="routeName" class="form-label">Route name</label>
+                        <label for="routeName" class="form-label">Route Name</label>
                         <input type="text" class="form-control" id="routeName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="climbType" class="form-label">Climb Type</label>
+                        <select class="form-select" id="climbType">
+                            <option value="Boulder">Boulder</option>
+                            <option value="Top Rope">Top Rope</option>
+                            <option value="Lead">Lead</option>
+                        </select>
                     </div>
                     <div class="row">
                         <div class="col mb-3">
                             <label for="grade" class="form-label">Grade</label>
                             <select class="form-select" id="grade">
+                                <option>3</option>
+                                <option>4</option>
                                 <option>5A</option>
                                 <option>5A+</option>
                                 <option>5B</option>
@@ -55,20 +70,22 @@
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label for="location" class="form-label">Location (Jura, etc)</label>
+                        <label for="location" class="form-label">Location</label>
                         <input type="text" class="form-control" id="location" required>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100">Save climb</button>
+                    <button type="submit" class="btn btn-primary w-100">Save Climb</button>
                 </form>
             </div>
         </div>
 
-        <h4 class="mb-3">Last send</h4>
+        <h4 class="mb-3">Recent Climbs</h4>
         <div id="climbsList" class="list-group shadow-sm">
+            <!-- Climbs list will be generated here -->
         </div>
     </div>
 
     <script>
+        // Fetch data from the API
         async function fetchClimbs() {
             try {
                 const response = await fetch('/api/climbs');
@@ -76,30 +93,40 @@
 
                 const climbs = await response.json();
                 const list = document.getElementById('climbsList');
-                list.innerHTML = ''; 
+                list.innerHTML = '';
 
-                
                 climbs.reverse().forEach(climb => {
+                    // Fallback for older database entries without a climb_type
+                    const typeDisplay = climb.climb_type ? climb.climb_type : 'Boulder';
+
                     list.innerHTML += `
-                        <div class="list-group-item">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h6 class="mb-1 fw-bold">${climb.route_name}</h6>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1 fw-bold">
+                                    ${climb.route_name} 
+                                    <span class="badge bg-secondary ms-2 climb-type-badge">${typeDisplay}</span>
+                                </h6>
                                 <span class="badge bg-success">${climb.grade}</span>
+                                <small class="text-muted ms-2">${climb.location} • Style: ${climb.style}</small>
                             </div>
-                            <small class="text-muted">${climb.location} • Styl: ${climb.style}</small>
+                            <div class="ms-2">
+                                <button class="btn btn-sm btn-outline-danger" id="deleteBtn-${climb.id}" onclick="requestDelete(${climb.id})">✖</button>
+                                <button class="btn btn-sm btn-danger d-none" id="confirmBtn-${climb.id}" onclick="confirmDelete(${climb.id})">Confirm</button>
+                            </div>
                         </div>
                     `;
                 });
             } catch (error) {
-                console.error('Error while fetching routes:', error);
+                console.error('Fetch error:', error);
             }
         }
 
+        // Form submission handler
         document.getElementById('addClimbForm').addEventListener('submit', async (e) => {
-            e.preventDefault(); 
-
+            e.preventDefault();
             const newClimb = {
                 route_name: document.getElementById('routeName').value,
+                climb_type: document.getElementById('climbType').value,
                 grade: document.getElementById('grade').value,
                 style: document.getElementById('style').value,
                 location: document.getElementById('location').value
@@ -114,17 +141,37 @@
 
                 if (response.ok) {
                     document.getElementById('addClimbForm').reset();
-                    fetchClimbs(); 
+                    document.getElementById('climbType').value = 'Boulder'; // Reset type to default
+                    fetchClimbs();
                 } else {
-                    alert('There was an error during saving to DB');
+                    alert('There was a problem saving to the database.');
                 }
             } catch (error) {
-                console.error('Saving error:', error);
-                alert('No connection with API');
+                console.error('Save error:', error);
             }
         });
 
-        // Fechting completed passes from Db
+        // Hide X, show Confirm
+        function requestDelete(id) {
+            document.getElementById(`deleteBtn-${id}`).classList.add('d-none');
+            document.getElementById(`confirmBtn-${id}`).classList.remove('d-none');
+        }
+
+        // Send DELETE request and refresh list
+        async function confirmDelete(id) {
+            try {
+                const response = await fetch(`/api/climbs/${id}`, { method: 'DELETE' });
+                if (response.ok) {
+                    fetchClimbs();
+                } else {
+                    alert('Error during deletion. Please refresh the page.');
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+            }
+        }
+
+        // Initial data fetch on page load
         fetchClimbs();
     </script>
 </body>
