@@ -14,6 +14,7 @@ This project implements a complete End-to-End GitOps workflow:
 *   **GitOps:** ArgoCD (Continuous synchronization with GKE cluster)
 *   **Networking / Ingress:** Cloudflare Quick Tunnels (Secure public exposure bypassing expensive cloud Load Balancers)
 
+```
 ## Repository structure
 .
 ├── .github/workflows/       # GitHub Actions CI/CD pipelines
@@ -21,6 +22,6 @@ This project implements a complete End-to-End GitOps workflow:
 ├── kubernetes/              # Kubernetes manifests
 │   └── bouldering-tracker/  # Application deployment, DB, and Cloudflare tunnel config
 └── README.md
-
+```
 ## Author
 Dominik Czajka
