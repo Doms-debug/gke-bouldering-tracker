@@ -23,5 +23,9 @@ This project implements a complete End-to-End GitOps workflow:
 │   └── bouldering-tracker/  # Application deployment, DB, and Cloudflare tunnel config
 └── README.md
 ```
+Final product look:
+<img width="686" height="693" alt="image" src="https://github.com/user-attachments/assets/ce886c55-f390-49d8-9430-0adfedc5faac" />
+
+
 ## Author
 Dominik Czajka
