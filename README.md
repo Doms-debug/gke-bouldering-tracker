@@ -1,35 +1,25 @@
-# Bouldering tracker
+# 🧗‍♂️ Bouldering tracker
 
-A lightweight, cloud-native application for tracking bouldering and sport climbing sessions. Designed with a strict FinOps approach to run on Google Kubernetes Engine (GKE) at near-zero operational cost.
+A lightweight, cloud-native application for tracking bouldering and sport climbing sessions.
 
-## Architecture & tech stack
+**Infra shift case study:** This project was originally built on Google Kubernetes Engine (GKE) using GitOps (ArgoCD). To optimize cloud expenditures for a personal portfolio project, the architecture was successfully migrated via a "Lift and Shift" approach to a zero-cost infrastructure using GCP's Always Free tier, reducing monthly costs from ~$50 to $0 without sacrificing CI/CD automation or secure networking.
 
-This project implements a complete End-to-End GitOps workflow:
+## 🏗️ Architecture and tech stack
 
-*   **Frontend:** HTML5 + Vanilla JS + Bootstrap 5 
-*   **Backend:** Python / FastAPI
-*   **Database:** PostgreSQL (Stateful workload with Persistent Volume Claims)
-*   **Containerization:** Docker & Google Artifact Registry
-*   **CI/CD Pipeline:** GitHub Actions (Automated build, image tagging and manifest updates)
-*   **GitOps:** ArgoCD (Continuous synchronization with GKE cluster)
-*   **Networking / Ingress:** Cloudflare Quick Tunnels (Secure public exposure bypassing expensive cloud Load Balancers)
+- **Frontend:** HTML5 + Vanilla JS + Bootstrap 5
+- **Backend:** Python / FastAPI
+- **Database:** PostgreSQL (Local containerized database with persistent volumes)
+- **Containerization:** Docker and Docker Compose
+- **Infrastructure:** GCP Compute Engine (`e2-micro` VM in `us-central1` - Always Free Tier)
+- **Networking / Ingress:** Cloudflare Quick Tunnels (Secure public HTTPS exposure bypassing cloud Load Balancers)
+- **CI/CD Pipeline:** GitHub Actions (Automated remote deployments via GCP Identity-Aware Proxy SSH)
 
-```
-## Repository structure
+## 📂 Repository structure
+
+```text
 .
-├── .github/workflows/       # GitHub Actions CI/CD pipelines
+├── .github/workflows/       # GitHub Actions CI/CD pipelines (VM deployment via IAP)
 ├── backend/                 # FastAPI application, HTML frontend, and Dockerfile
-├── kubernetes/              # Kubernetes manifests
-│   └── bouldering-tracker/  # Application deployment, DB, and Cloudflare tunnel config
+├── docker-compose.yml       # Multi-container orchestration (API, DB, Cloudflare)
 └── README.md
 ```
-Final product look:
-
-<img width="686" height="693" alt="image" src="https://github.com/user-attachments/assets/ce886c55-f390-49d8-9430-0adfedc5faac" />
-
-
-## TO DO:
-- Move it to Cloud Run and host permanently
-
-## Author
-Dominik Czajka
