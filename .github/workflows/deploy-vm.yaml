@@ -26,6 +26,7 @@ jobs:
         run: |
           gcloud compute ssh ${{ env.VM_NAME }} --zone=${{ env.ZONE }} --project=${{ env.PROJECT_ID }} --quiet --command="
             cd /home/domikepaczajka77/gke-bouldering-tracker &&
+            sudo git config --global --add safe.directory /home/domikepaczajka77/gke-bouldering-tracker &&
             sudo git pull origin main &&
             sudo docker-compose up -d --build
           "
