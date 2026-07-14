@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  postgres-service:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: bouldering_user
+      POSTGRES_PASSWORD: supersecretpassword
+      POSTGRES_DB: bouldering_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  bouldering-tracker-service:
+    build: ./backend
+    depends_on:
+      - postgres-service
+    restart: unless-stopped
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --url http://bouldering-tracker-service:80
+    depends_on:
+      - bouldering-tracker-service
+    restart: unless-stopped
+
+volumes:
+  pgdata:
