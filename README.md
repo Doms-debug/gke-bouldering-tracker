@@ -1,10 +1,10 @@
-# 🧗‍♂️ Bouldering tracker
+# Bouldering tracker
 
 A lightweight, cloud-native application for tracking bouldering and sport climbing sessions.
 
 **Infra shift case study:** This project was originally built on Google Kubernetes Engine (GKE) using GitOps (ArgoCD). To optimize cloud expenditures for a personal portfolio project, the architecture was successfully migrated via a "Lift and Shift" approach to a zero-cost infrastructure using GCP's Always Free tier, reducing monthly costs from ~$50 to $0 without sacrificing CI/CD automation or secure networking.
 
-## 🏗️ Architecture and tech stack
+## Architecture and tech stack
 
 - **Frontend:** HTML5 + Vanilla JS + Bootstrap 5
 - **Backend:** Python / FastAPI
@@ -14,7 +14,7 @@ A lightweight, cloud-native application for tracking bouldering and sport climbi
 - **Networking / Ingress:** Cloudflare Quick Tunnels (Secure public HTTPS exposure bypassing cloud Load Balancers)
 - **CI/CD Pipeline:** GitHub Actions (Automated remote deployments via GCP Identity-Aware Proxy SSH)
 
-## 📂 Repository structure
+## Repository structure
 
 ```text
 .
